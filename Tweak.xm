@@ -252,8 +252,8 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
             [startingtextRange release], startingtextRange = nil;
             startingtextRange = [[privateInputDelegate selectedTextRange] retain];
         }
-	}
-	else if (gesture.state == UIGestureRecognizerStateChanged) {
+    }
+    else if (gesture.state == UIGestureRecognizerStateChanged) {
         UITextRange *currentRange = startingtextRange;
         if ([privateInputDelegate respondsToSelector:@selector(selectedTextRange)]) {
             currentRange = nil;
@@ -261,7 +261,7 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
         }
 
         CGPoint position = [gesture locationInView:self];
-		CGPoint delta = CGPointMake(position.x - previousPosition.x, position.y - previousPosition.y);
+        CGPoint delta = CGPointMake(position.x - previousPosition.x, position.y - previousPosition.y);
 
         // Should we even run?
         CGFloat deadZone = 10;
@@ -383,8 +383,8 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
                 
                 // Another sanity check
                 if (!_position || positiveX < xMinimum){
-					_position = _position_old;
-				}
+                    _position = _position_old;
+                }
             }
 
             // Move Y
@@ -425,7 +425,7 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
         if (textRange && (oldPrevious.x != previousPosition.x || oldPrevious.y != previousPosition.y)) {
             [privateInputDelegate setSelectedTextRange:textRange];
         }
-	}
+    }
 }
 
 %end
@@ -467,10 +467,10 @@ static BOOL didWaitForSwipe = NO;
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-	UITouch *touch = [touches anyObject];
+    UITouch *touch = [touches anyObject];
     NSString *key = [[[self keyHitTest:[touch locationInView:touch.view]] representedString] lowercaseString];
     swipeFromDelete = ([key isEqualToString:@"delete"]);
-	%orig;
+    %orig;
 }
 %end
 

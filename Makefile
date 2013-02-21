@@ -1,3 +1,4 @@
+TARGET = :latest:5.0
 ARCHS=armv7
 
 include /opt/theos/makefiles/common.mk

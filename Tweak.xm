@@ -140,10 +140,11 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
 
     // Basic info
     static BOOL shiftHeldDown = NO;
-    static BOOL hasStarted = NO;
+    
     static BOOL longPress = NO;
     static BOOL handWriting = NO;
     static BOOL haveCheckedHand = NO;
+    static BOOL hasStarted = NO;
     static BOOL isFirstShiftDown = NO;
     static int touchesWhenShiting = 0;
 
@@ -459,94 +460,43 @@ BOOL KH_positionsSame(id <UITextInput, UITextInputTokenizer> tokenizer, UITextPo
 
 
 
-
-//
-// Code from : @iamharicc
-//
-// iAmharic <iamharic@gmail.com>
-//
-
-
-static BOOL shiftByDelete;
-static BOOL isLongPressed;
-static BOOL isDeleteKey;
-
+static BOOL swipeFromDelete = NO;
+static BOOL didWaitForSwipe = NO;
 
 %hook UIKeyboardLayoutStar
-/*==============touchesBegan================*/
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
 	UITouch *touch = [touches anyObject];
-	NSString *key = [[[self keyHitTest:[touch locationInView:touch.view]] representedString] lowercaseString];
-	
-	if ([key isEqualToString:@"delete"]) {
-		isDeleteKey = YES;
-	}
-	else {
-		isDeleteKey = NO;
-	}
-	
+    NSString *key = [[[self keyHitTest:[touch locationInView:touch.view]] representedString] lowercaseString];
+    swipeFromDelete = ([key isEqualToString:@"delete"]);
 	%orig;
-}
-
-/*==============touchesMoved================*/
--(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-	UITouch *touch = [touches anyObject];
-	NSString *key = [[[self keyHitTest:[touch locationInView:touch.view]] representedString] lowercaseString];
-	
-	if ([key isEqualToString:@"delete"]) {
-		shiftByDelete = YES;
-	}
-	
-	%orig;
-}
-
--(void)touchesCancelled:(id)arg1 withEvent:(id)arg2 {
-	%orig(arg1, arg2);
-	
-	shiftByDelete = NO;
-	isLongPressed = NO;
-}
-
-/*==============touchesEnded================*/
--(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-	isDeleteKey = NO;
-	
-	UITouch *touch = [touches anyObject];
-	NSString *key = [[[self keyHitTest:[touch locationInView:touch.view]] representedString] lowercaseString];
-	
-	if ([key isEqualToString:@"delete"]&& !isLongPressed) {
-		UIKeyboardImpl *kb = [UIKeyboardImpl activeInstance];
-		[kb handleDelete];
-	}
-	
-	shiftByDelete = NO;
-	isLongPressed = NO;
-	
-	%orig;
-}
-
--(BOOL)isShiftKeyBeingHeld {
-	if(shiftByDelete) {
-		return YES;
-	}
-	
-	return %orig;
 }
 %end
 
-/*==============UIKeyboardImpl================*/
 %hook UIKeyboardImpl
--(BOOL)isLongPress {
-	isLongPressed = %orig;
-	return isLongPressed;
+- (void)handleDelete
+{
+    if (!didWaitForSwipe) {
+        [NSTimer scheduledTimerWithTimeInterval:0.1f target:self selector:@selector(ss_timerFired:) userInfo:nil repeats:NO];
+    }
+    else if (swipeFromDelete) {
+        swipeFromDelete = NO;
+        // don't delete if the swipe began from the delete key.
+    }
+    else {
+        %orig;
+    }
 }
 
--(void)handleDelete {
-	if (!isLongPressed && isDeleteKey) {
-		
-	}
-	else {
-		%orig;
-	}
+%new
+- (void)ss_timerFired:(NSTimer *)timer
+{
+    didWaitForSwipe = YES;
+    [self handleDelete];
+    didWaitForSwipe = NO;
 }
+
 %end
+
+
